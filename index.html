@@ -118,7 +118,8 @@ let state = {
   generatedNote: "",
   polishedNote: "",
   isPolishing: false,
-  copied: false
+  copied: false,
+  polishCopied: false
 };
 
 function set(key, val) {
@@ -537,11 +538,10 @@ function render() {
             document.execCommand('copy');
             document.body.removeChild(ta);
           }
-          setState({copied:true});
-          setTimeout(()=>setState({copied:false}), 2000);
-          setTimeout(()=>{ window.open('https://claude.ai/new','_blank'); }, 300);
+          setState({polishCopied:true});
+          setTimeout(()=>setState({polishCopied:false}), 4000);
         }
-      }, '✨ Polish in Claude');
+      }, state.polishCopied?'✓ Copied! Open Claude & paste':'✨ Polish in Claude');
       nav.appendChild(polishBtn);
     }
     app.appendChild(nav);
