@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Op Note">
+<meta name="theme-color" content="#1A1714">
+<title>Shoulder Op Note</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { background: #1A1714; color: #E8E4E0; font-family: 'DM Sans', sans-serif; min-height: 100vh; min-height: -webkit-fill-available; overflow-x: hidden; }
+  html { height: -webkit-fill-available; }
+
+  .container { max-width: 600px; margin: 0 auto; padding: 16px 16px 130px; }
+
+  /* Header */
+  .header { text-align: center; padding: 20px 0 12px; }
+  .header h1 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; color: #E8E4E0; margin-bottom: 4px; }
+  .header .sub { font-size: 12px; color: #7A7570; letter-spacing: 0.05em; }
+
+  /* Progress */
+  .progress { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 4px; border: none; background: #3A3632; cursor: pointer; padding: 0; transition: all 0.2s; }
+  .dot.active { width: 24px; background: #5B8A72; }
+  .dot.done { background: #5B8A72; opacity: 0.5; }
+
+  .section-label { font-size: 11px; color: #7A7570; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; text-align: center; font-weight: 600; }
+
+  /* Cards */
+  .card { background: #262320; border-radius: 16px; padding: 20px 18px; margin-bottom: 14px; border: 1px solid #332F2B; }
+  .card-title { font-size: 16px; font-weight: 700; color: #E8E4E0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { font-size: 18px; }
+
+  /* Fields */
+  .field { margin-bottom: 18px; }
+  .field-label { font-size: 12px; font-weight: 600; color: #7A7570; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
+
+  /* Text Input */
+  .text-input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #3A3632; background: #1E1B18; color: #E8E4E0; font-size: 15px; font-family: 'DM Sans', sans-serif; outline: none; }
+  .text-input:focus { border-color: #5B8A72; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .chip { padding: 8px 14px; border-radius: 20px; border: 1.5px solid #3A3632; background: transparent; color: #9B9590; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; font-weight: 400; }
+  .chip.selected { border-color: #5B8A72; background: rgba(91,138,114,0.2); color: #8CBFA8; font-weight: 600; }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; cursor: pointer; user-select: none; }
+  .toggle-label { font-size: 15px; color: #E8E4E0; }
+  .toggle-track { width: 48px; height: 26px; border-radius: 13px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-track.on { background: #5B8A72; }
+  .toggle-track.off { background: #3A3632; }
+  .toggle-thumb { width: 22px; height: 22px; border-radius: 11px; background: #FFF; position: absolute; top: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .toggle-track.on .toggle-thumb { left: 24px; }
+  .toggle-track.off .toggle-thumb { left: 2px; }
+
+  /* Flex row */
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+
+  /* Bottom nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, #1A1714 30%); display: flex; gap: 10px; justify-content: center; z-index: 100; }
+  .btn { padding: 14px 20px; border-radius: 14px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; flex: 1; max-width: 200px; text-align: center; }
+  .btn-primary { border: none; background: #5B8A72; color: #FFF; }
+  .btn-secondary { border: 1.5px solid #3A3632; background: transparent; color: #9B9590; }
+  .btn-outline { border: 1.5px solid #5B8A72; background: transparent; color: #8CBFA8; }
+  .btn-wide { max-width: 300px; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn-copied { background: #5B8A72 !important; color: #FFF !important; }
+
+  /* Preview */
+  .preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-top: 8px; }
+  .back-btn { background: none; border: none; color: #8CBFA8; font-size: 15px; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 8px 0; }
+  .status-badge { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  .status-draft { color: #7A7570; }
+  .status-polished { color: #8CBFA8; }
+  .note-display { background: #262320; border-radius: 16px; padding: 20px; border: 1px solid #332F2B; white-space: pre-wrap; font-size: 13px; line-height: 1.7; color: #D4D0CC; }
+
+  /* New case button */
+  .new-case-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; margin-bottom: 8px; }
+  .new-case-btn { background: none; border: 1.5px solid #3A3632; color: #9B9590; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 6px 14px; border-radius: 10px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ==================== DATA & CONSTANTS ====================
+const SECTIONS = ["patient","eua","labrum","biceps","cartilage","subscap","supraspinatus","infraspinatus","teresMajor","subacromial","acromioplasty","acJoint","closure"];
+const SECTION_LABELS = {patient:"Patient",eua:"EUA",labrum:"Labrum",biceps:"Biceps",cartilage:"Cartilage",subscap:"Subscapularis",supraspinatus:"Supraspinatus",infraspinatus:"Infraspinatus",teresMajor:"Teres Minor",subacromial:"Subacromial",acromioplasty:"Acromioplasty",acJoint:"AC Joint",closure:"Closure"};
+const SECTION_ICONS = {patient:"👤",eua:"🔍",labrum:"🎯",biceps:"💪",cartilage:"🦴",subscap:"🔧",supraspinatus:"🩹",infraspinatus:"🩹",teresMajor:"🩹",subacromial:"🔬",acromioplasty:"⚒️",acJoint:"🦴",closure:"✅"};
+
+function getDefaults() {
+  return {
+    side:"Right",age:"",sex:"Male",position:"Lateral decubitus",armPositioner:"Trimano",
+    forwardFlexion:"170",externalRotation:"60",internalRotation:"Belly",instability:"None",
+    labrumStatus:"Fraying",labrumLocations:["Anterior","Superior","Posterior"],labrumIntervention:"Debridement",
+    bicepsStatus:"Tenosynovitis",bicepsIntervention:"None",tenodesiAnchor:"4.75 mm SwiveLock",
+    humeralHeadGrade:"None",glenoidGrade:"None",chondroplasty:false,
+    subscapStatus:"Intact",subscapIntervention:"None",subscapAnchorType:"SwiveLock",subscapRepairWithBiceps:true,
+    supraspinatusStatus:"Intact",supraspinatusTearPattern:"",supraspinatusIntervention:"None",supraspinatusTechnique:"Double row (medial staple)",
+    infraspinatusStatus:"Intact",infraspinatusIntervention:"None",
+    teresMinorStatus:"Intact",
+    bursitis:true,synovitis:true,impingement:true,bursectomy:true,
+    acromionType:"Type 2",acromialSpur:true,acromioplasty:true,convertedTo:"Type 1",
+    acJointArthritis:false,distalClavicleExcision:false,
+    sutureType:"3-0 nylon",slingWeeks:"6",noResistedFlexionWeeks:"6",followUpWeeks:"2"
+  };
+}
+
+let state = {
+  data: getDefaults(),
+  currentSection: 0,
+  view: "form",
+  generatedNote: "",
+  polishedNote: "",
+  isPolishing: false,
+  copied: false
+};
+
+function set(key, val) {
+  if (Array.isArray(state.data[key]) && Array.isArray(val)) {
+    state.data[key] = val;
+  } else {
+    state.data[key] = val;
+  }
+  render();
+}
+
+function setState(updates) {
+  Object.assign(state, updates);
+  render();
+}
+
+function resetForm() {
+  state.data = getDefaults();
+  state.currentSection = 0;
+  state.view = "form";
+  state.generatedNote = "";
+  state.polishedNote = "";
+  state.isPolishing = false;
+  state.copied = false;
+  render();
+}
+
+// ==================== NOTE GENERATION ====================
+function generateNote(d) {
+  const he = d.sex==="Male"?"he":d.sex==="Female"?"she":"they";
+  const his = d.sex==="Male"?"his":d.sex==="Female"?"her":"their";
+
+  const preDx=[], postDx=[], procedures=[];
+
+  if(d.supraspinatusStatus!=="Intact"){
+    const desc=d.supraspinatusStatus==="Full-thickness"
+      ?`${d.side} shoulder rotator cuff tear, supraspinatus (${(d.supraspinatusTearPattern||"crescent").toLowerCase()}-type, full-thickness)`
+      :`${d.side} shoulder supraspinatus ${d.supraspinatusStatus.toLowerCase()} tear`;
+    preDx.push(desc); postDx.push(desc);
+  }
+  if(d.infraspinatusStatus!=="Intact"){
+    const desc=d.infraspinatusStatus==="Full-thickness"
+      ?`${d.side} shoulder rotator cuff tear, infraspinatus (full-thickness)`
+      :`${d.side} shoulder infraspinatus ${d.infraspinatusStatus.toLowerCase()} tear`;
+    preDx.push(desc); postDx.push(desc);
+  }
+  if(d.subscapStatus!=="Intact"){
+    preDx.push(`${d.side} shoulder subscapularis ${d.subscapStatus.toLowerCase().replace("partial tear ","partial-thickness tear, ")}`);
+    postDx.push(`${d.side} shoulder subscapularis ${d.subscapStatus.toLowerCase().replace("partial tear ","partial-thickness tear, ")}`);
+  }
+  if(d.bicepsStatus!=="Intact"){
+    let bd=`${d.side} shoulder biceps ${d.bicepsStatus.toLowerCase()}`;
+    if(["Subluxating","Dislocatable","Dislocated"].includes(d.bicepsStatus)) bd=`${d.side} shoulder biceps tenosynovitis with ${d.bicepsStatus.toLowerCase()}`;
+    preDx.push(bd); postDx.push(bd);
+  }
+  if(d.humeralHeadGrade!=="None"||d.glenoidGrade!=="None"){
+    preDx.push(`${d.side} shoulder glenohumeral chondromalacia`);
+    if(d.humeralHeadGrade!=="None") postDx.push(`${d.side} shoulder grade ${d.humeralHeadGrade} chondromalacia of the humeral head`);
+    if(d.glenoidGrade!=="None") postDx.push(`${d.side} shoulder grade ${d.glenoidGrade} chondromalacia of the glenoid`);
+  }
+  if(d.labrumStatus!=="Intact") postDx.push(`${d.side} shoulder labral ${d.labrumStatus.toLowerCase()} (${d.labrumLocations.join(", ").toLowerCase()})`);
+  if(d.impingement){
+    preDx.push(`${d.side} shoulder subacromial impingement syndrome`);
+    postDx.push(`${d.side} shoulder subacromial impingement syndrome with ${d.acromionType.toLowerCase()} acromion${d.acromialSpur?" and acromial spur":""}`);
+  }
+  if(d.bursitis||d.synovitis) postDx.push(`${d.side} shoulder extensive subacromial ${[d.bursitis&&"bursitis",d.synovitis&&"synovitis"].filter(Boolean).join(" and ")}`);
+  if(d.acJointArthritis) postDx.push(`${d.side} acromioclavicular joint arthritis`);
+
+  procedures.push(`${d.side} shoulder diagnostic arthroscopy`);
+  procedures.push(`${d.side} shoulder extensive glenohumeral debridement, synovectomy, and chondroplasty`);
+  if(d.labrumStatus!=="Intact"&&d.labrumIntervention==="Debridement") procedures.push(`${d.side} shoulder labral debridement`);
+  if(d.bicepsIntervention!=="None"){
+    if(d.bicepsIntervention.startsWith("Tenodesis")){
+      const loc=d.bicepsIntervention.includes("suprapectoral")?"suprapectoral":"subpectoral";
+      procedures.push(`${d.side} shoulder arthroscopic extraarticular ${loc} biceps tenodesis`);
+    } else procedures.push(`${d.side} shoulder biceps ${d.bicepsIntervention.toLowerCase()}`);
+  }
+  if(d.subscapIntervention==="Repair") procedures.push(`${d.side} shoulder arthroscopic knotless subscapularis repair`);
+  else if(d.subscapIntervention==="Debridement") procedures.push(`${d.side} shoulder subscapularis debridement`);
+  if(d.bursectomy) procedures.push(`${d.side} shoulder extensive subacromial bursectomy and synovectomy`);
+  if(d.acromioplasty) procedures.push(`${d.side} shoulder subacromial decompression with partial acromioplasty`);
+  if(d.supraspinatusIntervention==="Repair"||d.infraspinatusIntervention==="Repair"){
+    const tendons=[d.supraspinatusIntervention==="Repair"&&"supraspinatus",d.infraspinatusIntervention==="Repair"&&"infraspinatus"].filter(Boolean);
+    const technique=d.supraspinatusTechnique||"Double row (medial staple)";
+    procedures.push(`${d.side} shoulder arthroscopic rotator cuff repair of the ${tendons.join(" and ")} tendon${tendons.length>1?"s":""} (${technique})`);
+  } else if(d.supraspinatusIntervention==="Debridement only") procedures.push(`${d.side} shoulder supraspinatus debridement`);
+  if(d.distalClavicleExcision) procedures.push(`${d.side} shoulder arthroscopic distal clavicle excision`);
+
+  // Findings
+  const fGH=[];
+  fGH.push(`The ${d.labrumLocations.join(", ").toLowerCase()} labrum demonstrated ${d.labrumStatus==="Fraying"?"significant fraying and partial tearing with increased excursion into the glenohumeral joint":d.labrumStatus==="Partial tear"?"partial tearing":d.labrumStatus==="Full tear"?"full-thickness tearing":"an intact appearance"}.`);
+  if(d.humeralHeadGrade!=="None") fGH.push(`There was grade ${d.humeralHeadGrade} chondromalacia of the humeral head.`);
+  if(d.glenoidGrade!=="None") fGH.push(`There was grade ${d.glenoidGrade} chondromalacia of the glenoid.`);
+  fGH.push(d.subscapStatus==="Intact"?`The subscapularis was intact.`:`The subscapularis demonstrated a ${d.subscapStatus.toLowerCase().replace("partial tear ","partial-thickness tear at the ")} of its insertion on the lesser tuberosity.`);
+  const bicepsFinding=d.bicepsStatus==="Intact"?"The biceps tendon was intact.":d.bicepsStatus==="Tenosynovitis"?"The biceps tendon was tenosynovitic and frayed.":`The biceps tendon was tenosynovitic, frayed, and ${d.bicepsStatus.toLowerCase()} from the groove.`;
+  fGH.push(bicepsFinding);
+  if(d.supraspinatusStatus==="Intact") fGH.push("The supraspinatus was intact.");
+  else if(d.supraspinatusStatus==="Full-thickness") fGH.push(`The supraspinatus demonstrated a ${(d.supraspinatusTearPattern||"crescent").toLowerCase()}-type full-thickness tear off of the greater tuberosity.`);
+  else fGH.push(`The supraspinatus demonstrated a ${d.supraspinatusStatus.toLowerCase()} tear.`);
+
+  const fSA=[];
+  fSA.push(`There was ${d.bursitis?"extensive":"minimal"} subacromial bursitis.`);
+  fSA.push(`There ${d.acJointArthritis?"was":"was no"} arthritis of the acromioclavicular joint.`);
+  fSA.push(d.acromialSpur?`There was a large bone spur on the undersurface of the acromion and a ${d.acromionType.toLowerCase()} acromion.`:`There was a ${d.acromionType.toLowerCase()} acromion without significant spurring.`);
+  fSA.push(d.infraspinatusStatus==="Intact"?"The infraspinatus appeared intact.":`The infraspinatus demonstrated a ${d.infraspinatusStatus.toLowerCase()} tear.`);
+  fSA.push(d.teresMinorStatus==="Intact"?"The teres minor appeared intact.":`The teres minor demonstrated a ${d.teresMinorStatus.toLowerCase()} tear.`);
+
+  // Procedure description
+  let p="";
+  p+=`The patient was met in the preoperative holding area where the operative ${d.side.toLowerCase()} shoulder was marked by the attending surgeon and all of ${his} questions were answered to ${his} satisfaction. The patient was then brought into the operative arena and placed in a surgical bed in the supine position. SCDs were placed and a preoperative dose of IV antibiotics and TXA was given. The patient was then intubated by the anesthesiologist. The patient was then placed into the ${d.position.toLowerCase()} position${d.armPositioner?` with the use of a ${d.armPositioner} arm positioner`:""}. All bony prominences were well padded. The preliminary time-out was taken and examination under anesthesia was performed.\n\n`;
+  p+=`Examination under anesthesia revealed the operative ${d.side.toLowerCase()} shoulder had full passive range of motion and ${d.instability==="None"?"no signs of instability":`signs of ${d.instability.toLowerCase()}`}. Forward flexion was to ${d.forwardFlexion} degrees, external rotation to ${d.externalRotation} degrees, and internal rotation to the ${d.internalRotation.toLowerCase()}.\n\n`;
+  p+=`The ${d.side.toLowerCase()} shoulder was prepped and draped in the usual sterile fashion. A final multidisciplinary surgical time-out was taken to identify the patient, medical record number, correct operative shoulder, and the procedures to be performed. This was agreed upon by the nurse, anesthesiologist, and surgeons. A marking pen was then used to mark out the bony landmarks of the shoulder as well as the preplanned anterior, lateral, and posterior portals.\n\n`;
+  p+=`A posterior portal was established in the standard fashion with an 11-blade through skin and insertion of the camera trocar. The arthroscopic camera was inserted, and then an anterior portal was created with inside-out technique high in the rotator interval. An incision was made through skin with an 11-blade, and the green cannula was inserted anteriorly.\n\n`;
+  p+=`Diagnostic shoulder arthroscopy of the glenohumeral joint:\nA diagnostic arthroscopy was performed. There was extensive synovitis in the subcoracoid recess and in the recess superior to the glenoid labrum. This synovial tissue and joint capsule was debrided using a 4.5 mm shaver and radiofrequency (RF) ablation device. `;
+  if(d.labrumStatus!=="Intact") p+=`There was ${d.labrumStatus.toLowerCase()} of the labrum located ${d.labrumLocations.join(", ").toLowerCase()}. A shaver was utilized to debride the torn labrum and glenoid bone to prevent any displacement of this tissue into the glenohumeral joint. Hemostasis was maintained utilizing the RF device.\n\n`;
+  else p+=`The labrum appeared intact. Hemostasis was maintained utilizing the RF device.\n\n`;
+  p+=`We then assessed the biceps tendon utilizing a probe to pull it from the groove into the joint and inspected back down the length of the tendon toward the bicipital groove. ${bicepsFinding}${["Subluxating","Dislocatable","Dislocated"].includes(d.bicepsStatus)?"":" The long head of the biceps tendon appeared stable."}\n\n`;
+  if(d.humeralHeadGrade!=="None"||d.glenoidGrade!=="None"){
+    if(d.humeralHeadGrade!=="None") p+=`There was grade ${d.humeralHeadGrade} chondromalacia diffusely of the humeral head. `;
+    if(d.glenoidGrade!=="None") p+=`There was grade ${d.glenoidGrade} chondromalacia diffusely of the glenoid. `;
+    if(d.chondroplasty) p+=`An arthroscopic shaver was utilized to perform a chondroplasty, debriding the loose and frayed cartilage. `;
+    p+="\n\n";
+  }
+  p+=d.subscapStatus==="Intact"?`The subscapularis tendon was probed and appeared intact.\n\n`:`The subscapularis tendon was probed and demonstrated a ${d.subscapStatus.toLowerCase().replace("partial tear ","partial-thickness tear at the ")} of its insertion on the lesser tuberosity.\n\n`;
+  if(d.supraspinatusStatus==="Intact") p+=`The supraspinatus tendon was visualized from the intra-articular location and appeared intact.\n\n`;
+  else if(d.supraspinatusStatus==="Full-thickness") p+=`The supraspinatus tendon was visualized from the intra-articular location and demonstrated a ${(d.supraspinatusTearPattern||"crescent").toLowerCase()}-type full-thickness tear off of the greater tuberosity.\n\n`;
+  else p+=`The supraspinatus tendon was visualized from the intra-articular location and demonstrated a ${d.supraspinatusStatus.toLowerCase()} tear. An arthroscopic shaver was utilized to perform a debridement of the articular-sided fraying and humeral bone.\n\n`;
+
+  // Biceps tenodesis + subscap
+  if(d.bicepsIntervention.startsWith("Tenodesis")&&d.subscapIntervention==="Repair"&&d.subscapRepairWithBiceps){
+    p+=`Arthroscopic extraarticular biceps tenodesis and arthroscopic knotless subscapularis repair:\nAttention was then turned to the arthroscopic extraarticular biceps tenodesis. A self-passing suture device was utilized to pass a FiberLink suture through the biceps tendon with a grasping stitch. This suture was retrieved through the anterior portal high within the groove. The biceps was then carefully cut with the ablator device. Care was taken not to damage the superior labrum or the supraspinatus. We then prepared the lesser tuberosity with a mechanical shaver at the superior border and then punched for planned insertion of the anchor. Next, the ${d.tenodesiAnchor} was inserted in a knotless fashion with the luggage tag suture with appropriate tension placed on the biceps. The biceps was tensioned to maintain its length-tension relationship and decrease the chance of any cosmetic deformity. The knotless sutures from the anchor were then utilized to perform a repair of the subscapularis. This was done by passing the repair stitch through the subscapularis tendon, which had been torn off the lesser tuberosity. The shuttle suture was then used to pass the repair stitch back through the anchor. Care was taken to provide the appropriate tension on the subscapularis to reduce the tendon appropriately with good tension. There was no impingement with the anterior labrum or anterior structures following completion of the extraarticular suprapectoral biceps tenodesis. This completed the arthroscopic knotless subscapularis repair with luggage tag suture within a SwiveLock anchor.\n\n`;
+  } else {
+    if(d.bicepsIntervention.startsWith("Tenodesis")){
+      const loc=d.bicepsIntervention.includes("suprapectoral")?"suprapectoral":"subpectoral";
+      p+=`Arthroscopic extraarticular ${loc} biceps tenodesis:\nAttention was then turned to the arthroscopic extraarticular biceps tenodesis. A self-passing suture device was utilized to pass a FiberLink suture through the biceps tendon with a grasping stitch. This suture was retrieved through the anterior portal high within the groove. The biceps was then carefully cut with the ablator device. Care was taken not to damage the superior labrum or the supraspinatus. We then prepared the lesser tuberosity with a mechanical shaver at the superior border and then punched for planned insertion of the anchor. Next, the ${d.tenodesiAnchor} was inserted in a knotless fashion with the luggage tag suture with appropriate tension placed on the biceps. The biceps was tensioned to maintain its length-tension relationship and decrease the chance of any cosmetic deformity. There was no impingement with the anterior labrum or anterior structures following completion of the extraarticular ${loc} biceps tenodesis.\n\n`;
+    } else if(d.bicepsIntervention==="Tenotomy"){
+      p+=`Arthroscopic biceps tenotomy:\nAttention was then turned to the biceps tenotomy. The biceps tendon was released from its origin at the superior labrum using the RF ablation device. Care was taken not to damage the superior labrum or the supraspinatus.\n\n`;
+    }
+    if(d.subscapIntervention==="Repair"){
+      p+=`Arthroscopic knotless subscapularis repair:\nAttention was then turned to repair of the subscapularis. A ${d.subscapAnchorType} anchor was placed in the lesser tuberosity. The repair stitch was passed through the subscapularis tendon and secured in a knotless fashion with appropriate tension to reduce the tendon to its anatomic footprint.\n\n`;
+    }
+  }
+
+  // Subacromial
+  if(d.bursectomy||d.acromioplasty){
+    p+=`Subacromial decompression${d.acromioplasty?" with partial acromioplasty":""}:\nNext, the arthroscope was introduced into the subacromial space. There was extensive synovitis and bursitis in this region with associated scarring. There was limited space and evidence of impingement syndrome. An extensive bursectomy and synovectomy was performed in the subacromial space using a combination of 4.5 mm shaver and the RF device. `;
+    if(d.acromioplasty&&d.acromialSpur) p+=`There was a large acromial spur; therefore, a standard lateral portal was made and an arthroscopic bur was used to perform a partial acromioplasty, thereby changing the shape of the acromion from a ${d.acromionType.toLowerCase()} to a ${d.convertedTo.toLowerCase()} acromion. `;
+    else if(d.acromioplasty) p+=`A standard lateral portal was made and an arthroscopic bur was used to perform a partial acromioplasty, thereby changing the shape of the acromion from a ${d.acromionType.toLowerCase()} to a ${d.convertedTo.toLowerCase()} acromion. `;
+    p+=`At the conclusion of this portion of the procedure, there was significantly more space observed arthroscopically in the subacromial region, adequate hemostasis was maintained, and the inflamed synovial and bursal tissue was resected. There was adequate space in the subacromial space for the rotator cuff to glide.\n\n`;
+  }
+
+  // RCR
+  const repairTendons=[d.supraspinatusIntervention==="Repair"&&"supraspinatus",d.infraspinatusIntervention==="Repair"&&"infraspinatus"].filter(Boolean);
+  if(repairTendons.length>0){
+    const technique=d.supraspinatusTechnique||"Double row (medial staple)";
+    p+=`Rotator cuff repair of the ${repairTendons.join(" and ")} tendon${repairTendons.length>1?"s":""} — ${technique}:\n`;
+    p+=`Attention was then turned to repair of the rotator cuff tear. There was a ${d.supraspinatusStatus==="Full-thickness"?`${(d.supraspinatusTearPattern||"crescent").toLowerCase()}-type full-thickness`:d.supraspinatusStatus.toLowerCase()} tear of the supraspinatus tendon. In order to fully mobilize the tendon, soft tissue releases were performed anteriorly, superiorly, and inferiorly, essentially circumferentially around the tendon${repairTendons.length>1?"s":""}. This allowed for the tendon${repairTendons.length>1?"s":""} to be pulled over to the greater tuberosity footprint. `;
+
+    if(technique==="Double row (medial staple)"){
+      p+=`Next, two medial row knotless SwiveLock anchors loaded with FiberTape were placed, one anterior and one posterior, at the articular margin. The sutures and FiberTape from each medial row anchor were passed through the rotator cuff tendon using a suture passer. The repair sutures from the anterior medial row anchor were then shuttled through the posterior medial row anchor using the shuttle sutures, and the repair sutures from the posterior medial row anchor were shuttled through the anterior medial row anchor in the same fashion. This created a medial compression staple configuration. Prior to tensioning the knotless repair sutures, a Kingfisher was used to reduce the rotator cuff back down to the greater tuberosity footprint. The repair sutures were then tensioned, providing medial compression and provisional reduction of the tendon to the footprint. Next, one limb of the anterior and posterior FiberTapes were brought to a lateral row SwiveLock anchor placed along the greater tuberosity lateral to the medial row anchors. A second lateral row SwiveLock anchor was placed in similar fashion with the remaining FiberTape limbs, thereby creating a double-row rotator cuff repair. The FiberTapes were noted to be crisscrossing over the tendon, and the medial compression staple provided excellent fixation and compression of the tendon to the footprint.\n\n`;
+    } else if(technique==="Double row (no medial staple)"){
+      p+=`Next, two medial row SwiveLock anchors loaded with FiberTape were placed, one anterior and one posterior, at the articular margin. The FiberTape from each medial row anchor was passed through the rotator cuff tendon using a suture passer. One limb of the anterior and posterior FiberTapes were brought to a lateral row SwiveLock anchor placed along the greater tuberosity lateral to the medial row anchors. A second lateral row SwiveLock anchor was placed in similar fashion with the remaining FiberTape limbs, thereby creating a double-row rotator cuff repair. The FiberTapes were noted to be crisscrossing over the tendon with good compression of the tendon to the footprint.\n\n`;
+    } else if(technique==="Single row"){
+      p+=`Anchors were placed in the greater tuberosity and sutures were passed through the rotator cuff tendon and tied in a single-row configuration, thereby completing the rotator cuff repair.\n\n`;
+    } else {
+      p+=`The rotator cuff repair was completed using a ${technique.toLowerCase()} technique with appropriate anchor placement and suture passage through the tendon.\n\n`;
+    }
+  }
+
+  if(d.distalClavicleExcision) p+=`Arthroscopic distal clavicle excision:\nAttention was then turned to the acromioclavicular joint. Using an arthroscopic bur, approximately 5-7 mm of the distal clavicle was resected. The resection was confirmed to be adequate with visualization of the joint space and no bony impingement with cross-body adduction.\n\n`;
+
+  p+=`Closure of incisions:\nAfter completion of a satisfactory repair and debridement, the shoulder and subacromial space were once again swept to remove any remaining loose bone fragments, synovitis, and potential scar tissue. Arthroscopic fluid was evacuated from the subacromial space and joint, and instruments were removed. The portals were reapproximated and closed with ${d.sutureType} suture. We confirmed that all counts were correct at the end of the case prior to and following closure. A clean sterile dressing consisting of Xeroform, Kerlix fluffs, ABD pad, and foam tape was applied. The drapes were then taken down. The patient was then placed into a sling prior to being awakened from anesthesia.\n\n`;
+  p+=`Following the procedure, the patient was satisfactorily awakened from anesthesia and transferred to the postanesthesia care unit in stable condition.`;
+
+  // Build
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US',{weekday:undefined,year:'numeric',month:'long',day:'2-digit'});
+  let note=`Date of Surgery: ${dateStr}\n\n`;
+  note+=`Pre-Operative Diagnosis:\n`;
+  preDx.forEach((dx,i)=>{note+=`${i+1}. ${dx}\n`;});
+  note+=`\nPost-Operative Diagnosis:\n`;
+  postDx.forEach((dx,i)=>{note+=`${i+1}. ${dx}\n`;});
+  note+=`\nProcedures Performed:\n`;
+  procedures.forEach((pr,i)=>{note+=`${i+1}. ${pr}\n`;});
+  note+=`\nFINDINGS:\nGlenohumeral joint: ${fGH.join(" ")}\n\n`;
+  note+=`Subacromial Space: ${fSA.join(" ")}\n\n`;
+  note+=`INDICATION FOR SURGERY:\nThe patient is a very pleasant ${d.age}-year-old ${d.sex.toLowerCase()} with progressive ${d.side.toLowerCase()} shoulder pain and weakness, which had failed conservative management and was affecting ${his} quality of life. Examination and MRI were consistent with the aforementioned diagnosis and ${he} was therefore indicated for the above-mentioned procedures.\n\n`;
+  note+=`RISK NOTE/INFORMED CONSENT:\nThe patient was explained the risks, benefits, and alternatives of the proposed surgery. The patient understood that the risks include, but are not limited to, pain, infection, bleeding, damage to nearby structures including nerves and blood vessels, possible need for another surgery in the future, re-tear or nonhealing of the rotator cuff, shoulder stiffness, stroke, DVT, pulmonary embolus, and death. The patient indicated ${he} understood the risks, benefits, and alternatives of surgery and decided to go forward with surgery and signed the consent form.\n\n`;
+  note+=`DESCRIPTION OF PROCEDURE:\n${p}\n\n`;
+  note+=`POST-OPERATIVE PLAN:\nThe patient was given detailed discharge instructions about the dressing, activity status, and postoperative pain medications. The patient will begin postoperative physical therapy, for which we have provided a protocol and prescription with specific instructions on range of motion limitations.\n`;
+  note+=`- The patient will be in a sling for ${d.slingWeeks} weeks.\n`;
+  note+=`- No resisted elbow flexion for ${d.noResistedFlexionWeeks} weeks.\n`;
+  note+=`- Sutures to be removed at ${d.followUpWeeks}-week postoperative follow-up visit.\n`;
+  return note;
+}
+
+// ==================== RENDERING ====================
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') el.className = v;
+      else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+      else el.setAttribute(k, v);
+    }
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    if (typeof c === 'string' || typeof c === 'number') el.appendChild(document.createTextNode(c));
+    else if (Array.isArray(c)) c.forEach(item => { if(item) el.appendChild(item); });
+    else el.appendChild(c);
+  }
+  return el;
+}
+
+function makeChips(options, value, key, multi=false) {
+  return h('div', {className:'chips'},
+    ...options.map(opt => {
+      const sel = multi ? value.includes(opt) : value === opt;
+      return h('button', {
+        className: 'chip' + (sel ? ' selected' : ''),
+        onClick: () => {
+          if(multi) set(key, sel ? value.filter(v=>v!==opt) : [...value, opt]);
+          else set(key, opt);
+        }
+      }, opt);
+    })
+  );
+}
+
+function makeToggle(label, key) {
+  const val = state.data[key];
+  return h('div', {className:'toggle-row', onClick:()=>set(key,!val)},
+    h('span', {className:'toggle-label'}, label),
+    h('div', {className:'toggle-track '+(val?'on':'off')},
+      h('div', {className:'toggle-thumb'})
+    )
+  );
+}
+
+function makeField(label, ...children) {
+  return h('div', {className:'field'},
+    h('label', {className:'field-label'}, label),
+    ...children
+  );
+}
+
+function makeInput(key, placeholder, type='text') {
+  const inp = h('input', {className:'text-input', type, placeholder, value:state.data[key]});
+  inp.addEventListener('input', e => set(key, e.target.value));
+  return inp;
+}
+
+function makeCard(title, icon, ...children) {
+  return h('div', {className:'card'},
+    h('div', {className:'card-title'},
+      h('span', {className:'icon'}, icon),
+      title
+    ),
+    ...children
+  );
+}
+
+function renderSection() {
+  const d = state.data;
+  const s = SECTIONS[state.currentSection];
+  switch(s) {
+    case 'patient':
+      return makeCard('Patient Info', '👤',
+        h('div', {className:'row'},
+          h('div', null, makeField('Age', makeInput('age','74','number'))),
+          h('div', null, makeField('Sex', makeChips(['Male','Female'], d.sex, 'sex')))
+        ),
+        makeField('Side', makeChips(['Right','Left'], d.side, 'side')),
+        makeField('Position', makeChips(['Lateral decubitus','Beach chair'], d.position, 'position')),
+        makeField('Arm Positioner', makeInput('armPositioner','Trimano'))
+      );
+    case 'eua':
+      return makeCard('Exam Under Anesthesia', '🔍',
+        makeField('Forward Flexion (°)', makeInput('forwardFlexion','170','number')),
+        makeField('External Rotation (°)', makeInput('externalRotation','60','number')),
+        makeField('Internal Rotation', makeInput('internalRotation','Belly')),
+        makeField('Instability', makeChips(['None','Anterior','Posterior','Multidirectional'], d.instability, 'instability'))
+      );
+    case 'labrum': {
+      const els = [makeField('Status', makeChips(['Intact','Fraying','Partial tear','Full tear'], d.labrumStatus, 'labrumStatus'))];
+      if(d.labrumStatus!=='Intact') {
+        els.push(makeField('Location (select all)', makeChips(['Anterior','Superior','Posterior','Inferior'], d.labrumLocations, 'labrumLocations', true)));
+        els.push(makeField('Intervention', makeChips(['Debridement','Repair'], d.labrumIntervention, 'labrumIntervention')));
+      }
+      return makeCard('Labrum', '🎯', ...els);
+    }
+    case 'biceps': {
+      const els = [
+        makeField('Status', makeChips(['Intact','Tenosynovitis','Partial tear','Subluxating','Dislocatable','Dislocated'], d.bicepsStatus, 'bicepsStatus')),
+        makeField('Intervention', makeChips(['None','Debridement','Tenotomy','Tenodesis (suprapectoral)','Tenodesis (subpectoral)'], d.bicepsIntervention, 'bicepsIntervention'))
+      ];
+      if(d.bicepsIntervention.startsWith('Tenodesis')) els.push(makeField('Anchor', makeInput('tenodesiAnchor','')));
+      return makeCard('Biceps Tendon', '💪', ...els);
+    }
+    case 'cartilage':
+      return makeCard('Cartilage', '🦴',
+        makeField('Humeral Head Grade', makeChips(['None','I','II','III','IV'], d.humeralHeadGrade, 'humeralHeadGrade')),
+        makeField('Glenoid Grade', makeChips(['None','I','II','III','IV'], d.glenoidGrade, 'glenoidGrade')),
+        makeToggle('Chondroplasty performed', 'chondroplasty')
+      );
+    case 'subscap': {
+      const els = [makeField('Status', makeChips(['Intact','Partial tear (upper border)','Partial tear (articular sided)','Full-thickness tear'], d.subscapStatus, 'subscapStatus'))];
+      if(d.subscapStatus!=='Intact') els.push(makeField('Intervention', makeChips(['None','Debridement','Repair'], d.subscapIntervention, 'subscapIntervention')));
+      if(d.subscapIntervention==='Repair'&&d.bicepsIntervention.startsWith('Tenodesis')) els.push(makeToggle('Combined with biceps tenodesis anchor', 'subscapRepairWithBiceps'));
+      return makeCard('Subscapularis', '🔧', ...els);
+    }
+    case 'supraspinatus': {
+      const els = [makeField('Tear Type', makeChips(['Intact','Partial (articular)','Partial (bursal)','Full-thickness'], d.supraspinatusStatus, 'supraspinatusStatus'))];
+      if(d.supraspinatusStatus==='Full-thickness') els.push(makeField('Tear Pattern', makeChips(['Crescent','L-shaped','Reverse L','U-shaped','Massive/irreparable'], d.supraspinatusTearPattern, 'supraspinatusTearPattern')));
+      if(d.supraspinatusStatus!=='Intact') {
+        els.push(makeField('Intervention', makeChips(['None','Debridement only','Repair'], d.supraspinatusIntervention, 'supraspinatusIntervention')));
+        if(d.supraspinatusIntervention==='Repair') els.push(makeField('Technique', makeChips(['Double row (medial staple)','Double row (no medial staple)','Single row','Suture bridge','Debridement only'], d.supraspinatusTechnique, 'supraspinatusTechnique')));
+      }
+      return makeCard('Supraspinatus', '🩹', ...els);
+    }
+    case 'infraspinatus': {
+      const els = [makeField('Tear Type', makeChips(['Intact','Partial (articular)','Partial (bursal)','Full-thickness'], d.infraspinatusStatus, 'infraspinatusStatus'))];
+      if(d.infraspinatusStatus!=='Intact') els.push(makeField('Intervention', makeChips(['None','Debridement only','Repair'], d.infraspinatusIntervention, 'infraspinatusIntervention')));
+      return makeCard('Infraspinatus', '🩹', ...els);
+    }
+    case 'teresMajor':
+      return makeCard('Teres Minor', '🩹',
+        makeField('Status', makeChips(['Intact','Partial tear','Full-thickness tear'], d.teresMinorStatus, 'teresMinorStatus'))
+      );
+    case 'subacromial':
+      return makeCard('Subacromial Space', '🔬',
+        makeToggle('Bursitis', 'bursitis'),
+        makeToggle('Synovitis', 'synovitis'),
+        makeToggle('Impingement', 'impingement'),
+        makeToggle('Bursectomy performed', 'bursectomy')
+      );
+    case 'acromioplasty': {
+      const els = [
+        makeField('Acromion Type', makeChips(['Type 1','Type 2','Type 3'], d.acromionType, 'acromionType')),
+        makeToggle('Acromial spur present', 'acromialSpur'),
+        makeToggle('Acromioplasty performed', 'acromioplasty')
+      ];
+      if(d.acromioplasty) els.push(makeField('Converted to', makeChips(['Type 1','Type 2','Type 3'], d.convertedTo, 'convertedTo')));
+      return makeCard('Acromioplasty', '⚒️', ...els);
+    }
+    case 'acJoint':
+      return makeCard('AC Joint', '🦴',
+        makeToggle('AC joint arthritis', 'acJointArthritis'),
+        makeToggle('Distal clavicle excision', 'distalClavicleExcision')
+      );
+    case 'closure':
+      return makeCard('Closure & Post-Op', '✅',
+        makeField('Suture Type', makeInput('sutureType','')),
+        makeField('Sling Duration (weeks)', makeInput('slingWeeks','6','number')),
+        makeField('No Resisted Flexion (weeks)', makeInput('noResistedFlexionWeeks','6','number')),
+        makeField('Follow-up (weeks)', makeInput('followUpWeeks','2','number'))
+      );
+  }
+}
+
+async function handleCopy(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  setState({copied:true});
+  setTimeout(()=>setState({copied:false}), 2000);
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  if(state.view==='preview'||state.view==='polished') {
+    const text = state.view==='polished'?state.polishedNote:state.generatedNote;
+    const container = h('div', {className:'container'},
+      h('div', {className:'preview-header'},
+        h('button', {className:'back-btn', onClick:()=>setState({view:'form'})}, '← Back to form'),
+        h('span', {className:'status-badge '+(state.view==='polished'?'status-polished':'status-draft')},
+          state.view==='polished'?'✓ Polished':'Draft')
+      ),
+      h('div', {className:'note-display'}, text)
+    );
+    app.appendChild(container);
+
+    const nav = h('div', {className:'bottom-nav'});
+    nav.appendChild(h('button', {
+      className:'btn '+(state.copied?'btn-copied':'btn-outline'),
+      onClick:()=>handleCopy(text)
+    }, state.copied?'✓ Copied!':'Copy to clipboard'));
+
+    if(state.view==='preview'){
+      const polishBtn = h('button', {
+        className:'btn btn-primary',
+        onClick: async()=>{
+          setState({isPolishing:true});
+          try {
+            const resp = await fetch('https://api.anthropic.com/v1/messages',{
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+                system:'You are an orthopedic surgery documentation assistant. Clean up this operative note for grammar, professional tone, completeness, and consistency. Do not add or fabricate any clinical findings. Return ONLY the cleaned operative note text with no commentary.',
+                messages:[{role:'user',content:state.generatedNote}]
+              })
+            });
+            const result = await resp.json();
+            const t = result.content?.map(c=>c.text||'').join('\n')||'Error polishing note.';
+            setState({polishedNote:t,view:'polished',isPolishing:false});
+          } catch(e) {
+            setState({polishedNote:'Error: Could not connect to API. Copy the draft above.',isPolishing:false});
+          }
+        }
+      }, state.isPolishing?'Polishing...':'✨ Polish with AI');
+      if(state.isPolishing) polishBtn.disabled = true;
+      nav.appendChild(polishBtn);
+    }
+    app.appendChild(nav);
+    window.scrollTo(0,0);
+    return;
+  }
+
+  // Form view
+  const isFirst = state.currentSection===0;
+  const isLast = state.currentSection===SECTIONS.length-1;
+  const sKey = SECTIONS[state.currentSection];
+
+  const container = h('div', {className:'container'},
+    h('div', {className:'header'},
+      h('h1', null, 'Shoulder Arthroscopy'),
+      h('div', {className:'sub'}, 'OPERATIVE NOTE GENERATOR')
+    ),
+    h('div', {className:'progress'},
+      ...SECTIONS.map((s,i) => h('button', {
+        className:'dot'+(i===state.currentSection?' active':i<state.currentSection?' done':''),
+        onClick:()=>setState({currentSection:i}),
+        title:SECTION_LABELS[s]
+      }))
+    ),
+    h('div', {className:'section-label'}, `${state.currentSection+1} of ${SECTIONS.length} — ${SECTION_LABELS[sKey]}`),
+    renderSection()
+  );
+  app.appendChild(container);
+
+  const nav = h('div', {className:'bottom-nav'});
+  if(!isFirst) nav.appendChild(h('button', {className:'btn btn-secondary', onClick:()=>{setState({currentSection:state.currentSection-1});}}, 'Back'));
+  const nextBtn = h('button', {
+    className:'btn btn-primary'+(isFirst?' btn-wide':''),
+    onClick:()=>{
+      if(isLast){
+        const note=generateNote(state.data);
+        setState({generatedNote:note,view:'preview'});
+      } else setState({currentSection:state.currentSection+1});
+    }
+  }, isLast?'Generate Note':'Next →');
+  nav.appendChild(nextBtn);
+
+  // New case button inline with nav
+  if(isFirst) {
+    nav.appendChild(h('button', {className:'btn btn-secondary', style:{maxWidth:'120px'}, onClick:resetForm}, '↺ Reset'));
+  }
+
+  app.appendChild(nav);
+  window.scrollTo(0,0);
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
