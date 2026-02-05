@@ -524,24 +524,24 @@ function render() {
       const polishBtn = h('button', {
         className:'btn btn-primary',
         onClick: async()=>{
-          setState({isPolishing:true});
+          const prompt = 'Please polish this operative note for grammar, professional tone, completeness, and consistency. Do not add or fabricate any clinical findings. Return ONLY the cleaned operative note in text only form with no commentary:\n\n' + state.generatedNote;
           try {
-            const resp = await fetch('https://api.anthropic.com/v1/messages',{
-              method:'POST', headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
-                system:'You are an orthopedic surgery documentation assistant. Clean up this operative note for grammar, professional tone, completeness, and consistency. Do not add or fabricate any clinical findings. Return ONLY the cleaned operative note text with no commentary.',
-                messages:[{role:'user',content:state.generatedNote}]
-              })
-            });
-            const result = await resp.json();
-            const t = result.content?.map(c=>c.text||'').join('\n')||'Error polishing note.';
-            setState({polishedNote:t,view:'polished',isPolishing:false});
-          } catch(e) {
-            setState({polishedNote:'Error: Could not connect to API. Copy the draft above.',isPolishing:false});
+            await navigator.clipboard.writeText(prompt);
+          } catch {
+            const ta = document.createElement('textarea');
+            ta.value = prompt;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
           }
+          setState({copied:true});
+          setTimeout(()=>setState({copied:false}), 2000);
+          setTimeout(()=>{ window.open('https://claude.ai/new','_blank'); }, 300);
         }
-      }, state.isPolishing?'Polishing...':'✨ Polish with AI');
-      if(state.isPolishing) polishBtn.disabled = true;
+      }, '✨ Polish in Claude');
       nav.appendChild(polishBtn);
     }
     app.appendChild(nav);
